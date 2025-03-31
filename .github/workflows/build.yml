@@ -1,0 +1,12 @@
+- name: Set up JDK
+  uses: actions/setup-java@v3
+  with:
+    java-version: '21'
+    distribution: 'temurin'
+    server-id: github
+    settings-path: ${{ github.workspace }}
+
+- name: Build with Maven
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  run: mvn install
