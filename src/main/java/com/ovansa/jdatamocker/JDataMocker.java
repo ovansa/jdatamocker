@@ -1,7 +1,6 @@
 package com.ovansa.jdatamocker;
 
 import com.ovansa.jdatamocker.provider.*;
-
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Locale;
@@ -9,47 +8,66 @@ import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * A utility class for generating mock data for testing purposes.
- * This class provides a centralized way to generate various types of mock data,
- * such as names, addresses, phone numbers, companies, dates, numbers, strings, and usernames,
- * by delegating to specific data providers.
+ * A comprehensive utility class for generating realistic mock data for testing purposes.
+ * Provides fluent access to various data generators including:
+ * <ul>
+ *   <li>Names (multiple cultures and formats)</li>
+ *   <li>Addresses (international formats)</li>
+ *   <li>Phone numbers (country-specific formats)</li>
+ *   <li>Companies (by industry and region)</li>
+ *   <li>Dates (with various constraints)</li>
+ *   <li>Numbers (with mathematical properties)</li>
+ *   <li>Strings (configurable patterns)</li>
+ *   <li>Usernames (multiple generation strategies)</li>
+ * </ul>
+ *
+ * <p>Example usage:
+ * <pre>{@code
+ * JDataMocker mocker = new JDataMocker();
+ * String name = mocker.name().arabic();
+ * LocalDate birthDate = mocker.date().past(30); // Date up to 30 years ago
+ * String email = mocker.email().business();
+ * }</pre>
  *
  * @author Muhammed Ibrahim
- * @version 1.0
+ * @version 2.0
  * @since 1.0
  */
 public class JDataMocker {
 
-    /** The random number generator used by all data providers. */
     private final ThreadLocalRandom random;
-
-    /** A map of provider names to their corresponding data provider instances. */
     private final Map<String, DataProvider> providers = new HashMap<>();
 
+    private final NameGenerator nameGenerator;
+    private final DateGenerator dateGenerator;
+    private final EmailGenerator emailGenerator;
+    private final NumberGenerator numberGenerator;
+    private final UsernameGenerator usernameGenerator;
+
     /**
-     * Constructs a new {@code JDataMocker} with the default locale ({@link Locale#ENGLISH}).
+     * Constructs a new {@code JDataMocker} with default locale (English).
      */
     public JDataMocker() {
         this(Locale.ENGLISH);
     }
 
     /**
-     * Constructs a new {@code JDataMocker} with the specified locale.
-     * The locale is currently not used for localization but is included for future extensibility.
-     * Initializes the random number generator and registers all data providers.
+     * Constructs a new {@code JDataMocker} with specified locale.
      *
-     * @param locale the {@link Locale} to use (currently unused but reserved for future localization)
+     * @param locale the locale to use for localized data generation
      */
     public JDataMocker(Locale locale) {
         this.random = ThreadLocalRandom.current();
         registerProviders();
+
+        // Initialize fluent API components
+        this.nameGenerator = new NameGenerator(this);
+        this.dateGenerator = new DateGenerator(this);
+        this.emailGenerator = new EmailGenerator(this);
+        this.numberGenerator = new NumberGenerator(this);
+        this.usernameGenerator = new UsernameGenerator(this);
     }
 
-    /**
-     * Registers all available data providers.
-     * This method populates the providers map with instances of each data provider,
-     * associating them with their respective keys (e.g., "name", "address").
-     */
     private void registerProviders() {
         providers.put("name", new NameProvider(random));
         providers.put("address", new AddressProvider(random));
@@ -61,131 +79,89 @@ public class JDataMocker {
         providers.put("username", new UsernameProvider(random));
     }
 
+    // Fluent API accessors
+    public NameGenerator name() { return nameGenerator; }
+    public DateGenerator date() { return dateGenerator; }
+    public EmailGenerator email() { return emailGenerator; }
+    public NumberGenerator number() { return numberGenerator; }
+    public UsernameGenerator username() { return usernameGenerator; }
+
     /**
-     * Retrieves a data provider by its name.
+     * Gets a specific provider by name.
      *
-     * @param providerName the name of the provider to retrieve (e.g., "name", "address")
-     * @return the {@link DataProvider} associated with the given name, or {@code null} if not found
+     * @param providerName the name of the provider
+     * @return the requested DataProvider
+     * @throws IllegalArgumentException if provider not found
      */
     public DataProvider getProvider(String providerName) {
-        return providers.get(providerName);
+        DataProvider provider = providers.get(providerName);
+        if (provider == null) {
+            throw new IllegalArgumentException("No provider found for: " + providerName);
+        }
+        return provider;
     }
 
-    /**
-     * Generates a random Nigerian name using the {@link NameProvider}.
-     *
-     * @return a randomly generated Nigerian name (e.g., "Chinedu Okoro")
-     */
-    public String nigerianName() {
-        return ((NameProvider) providers.get("name")).nigerianName();
+    // Fluent API inner classes
+    public static class NameGenerator {
+        private final JDataMocker mocker;
+
+        NameGenerator(JDataMocker mocker) { this.mocker = mocker; }
+
+        public String nigerian() { return ((NameProvider) mocker.getProvider("name")).nigerianName(); }
+        public String arabic() { return ((NameProvider) mocker.getProvider("name")).arabicName(); }
+        public String western() { return ((NameProvider) mocker.getProvider("name")).getName(NameProvider.Region.WESTERN); }
+        public String fullName() { return ((NameProvider) mocker.getProvider("name")).getName(); }
     }
 
-    /**
-     * Generates a random Arabic name using the {@link NameProvider}.
-     *
-     * @return a randomly generated Arabic name (e.g., "Mohammed Al-Saud")
-     */
-    public String arabicName() {
-        return ((NameProvider) providers.get("name")).arabicName();
+    public static class DateGenerator {
+        private final JDataMocker mocker;
+
+        DateGenerator(JDataMocker mocker) { this.mocker = mocker; }
+
+        public LocalDate random() { return ((DateProvider) mocker.getProvider("date")).randomDate(); }
+        public LocalDate past(int maxYears) { return ((DateProvider) mocker.getProvider("date")).randomPastDate(maxYears); }
+        public LocalDate future(int maxYears) { return ((DateProvider) mocker.getProvider("date")).randomFutureDate(maxYears); }
+        public LocalDate birthday(int age) { return ((DateProvider) mocker.getProvider("date")).randomBirthDate(age); }
     }
 
-    /**
-     * Generates a mock email address based on a Nigerian name.
-     * The email is created by replacing spaces in the name with dots, converting to lowercase,
-     * and appending "@example.com".
-     *
-     * @return a mock email address (e.g., "chinedu.okoro@example.com")
-     */
-    public String email() {
-        return nigerianName().replace(" ", ".").toLowerCase() + "@example.com";
+    public static class EmailGenerator {
+        private final JDataMocker mocker;
+
+        EmailGenerator(JDataMocker mocker) { this.mocker = mocker; }
+
+        public String personal() {
+            return mocker.name().fullName().replace(" ", ".").toLowerCase() + "@example.com";
+        }
+
+        public String business() {
+            String company = ((CompanyProvider) mocker.getProvider("company"))
+                    .randomCompany(Continent.AMERICA)
+                    .replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
+            return "contact@" + company + ".com";
+        }
     }
 
-    /**
-     * Generates a random full address using the {@link AddressProvider}.
-     *
-     * @return a randomly generated full address (e.g., "123 Main St")
-     */
-    public String address() {
-        return ((AddressProvider) providers.get("address")).fullAddress();
+    public static class NumberGenerator {
+        private final JDataMocker mocker;
+
+        NumberGenerator(JDataMocker mocker) { this.mocker = mocker; }
+
+        public int integer(int min, int max) { return ((NumberProvider) mocker.getProvider("number")).randomNumber(min, max); }
+        public int even(int min, int max) { return ((NumberProvider) mocker.getProvider("number")).randomEvenNumber(min, max); }
+        public int odd(int min, int max) { return ((NumberProvider) mocker.getProvider("number")).randomOddNumber(min, max); }
+        public double decimal(double min, double max) { return ((NumberProvider) mocker.getProvider("number")).randomDecimal(min, max); }
+        public double percentage() { return ((NumberProvider) mocker.getProvider("number")).randomPercentage(2); }
     }
 
-    /**
-     * Generates a random phone number using the {@link PhoneNumberProvider}.
-     *
-     * @return a randomly generated phone number (e.g., "0123456789")
-     */
-    public String phoneNumber() {
-        return ((PhoneNumberProvider) providers.get("phoneNumber")).phoneNumber();
-    }
+    public static class UsernameGenerator {
+        private final JDataMocker mocker;
 
-    /**
-     * Generates a random string of the specified length using the {@link StringProvider}.
-     *
-     * @param length the desired length of the random string
-     * @return a randomly generated string of the specified length
-     */
-    public String randomString(int length) {
-        return ((StringProvider) providers.get("string")).randomString(length);
-    }
+        UsernameGenerator(JDataMocker mocker) { this.mocker = mocker; }
 
-    /**
-     * Generates a random date using the {@link DateProvider}.
-     *
-     * @return a randomly generated {@link LocalDate} between 1900 and 2023
-     */
-    public LocalDate randomDate() {
-        return ((DateProvider) providers.get("date")).randomDate();
-    }
-
-    /**
-     * Generates a random integer within the specified range using the {@link NumberProvider}.
-     *
-     * @param min the minimum value (inclusive) of the range
-     * @param max the maximum value (inclusive) of the range
-     * @return a random integer between {@code min} and {@code max}, inclusive
-     */
-    public int randomNumber(int min, int max) {
-        return ((NumberProvider) providers.get("number")).randomNumber(min, max);
-    }
-
-    /**
-     * Generates a random even integer within the specified range using the {@link NumberProvider}.
-     *
-     * @param min the minimum value (inclusive) of the range
-     * @param max the maximum value (inclusive) of the range
-     * @return a random even integer between {@code min} and {@code max}, inclusive
-     */
-    public int randomEvenNumber(int min, int max) {
-        return ((NumberProvider) providers.get("number")).randomEvenNumber(min, max);
-    }
-
-    /**
-     * Generates a random odd integer within the specified range using the {@link NumberProvider}.
-     *
-     * @param min the minimum value (inclusive) of the range
-     * @param max the maximum value (inclusive) of the range
-     * @return a random odd integer between {@code min} and {@code max}, inclusive
-     */
-    public int randomOddNumber(int min, int max) {
-        return ((NumberProvider) providers.get("number")).randomOddNumber(min, max);
-    }
-
-    /**
-     * Generates a random username using the {@link UsernameProvider}.
-     *
-     * @return a randomly generated username (e.g., "CoolTiger123")
-     */
-    public String randomUsername() {
-        return ((UsernameProvider) providers.get("username")).randomUsername();
-    }
-
-    /**
-     * Generates a random company name based on the specified continent using the {@link CompanyProvider}.
-     *
-     * @param continent the {@link Continent} to select a company from
-     * @return a randomly selected company name from the specified continent
-     */
-    public String randomCompany(Continent continent) {
-        return ((CompanyProvider) providers.get("company")).randomCompany(continent);
+        public String random() { return ((UsernameProvider) mocker.getProvider("username")).randomUsername(); }
+        public String nameBased() { return ((UsernameProvider) mocker.getProvider("username")).randomNameUsername(); }
+        public String custom(int length, boolean specialChars) {
+            return ((UsernameProvider) mocker.getProvider("username")).randomCustomUsername(length, specialChars, true);
+        }
     }
 }
