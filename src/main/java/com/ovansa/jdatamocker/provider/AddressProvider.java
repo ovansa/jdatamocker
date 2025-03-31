@@ -3,7 +3,7 @@ package com.ovansa.jdatamocker.provider;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Provides mock address data for testing purpose.
+ * Provides mock address data for testing purposes.
  * This class generates random addresses, such as street names and house numbers,
  * to simulate realistic address data for use in testing environments.
  *
