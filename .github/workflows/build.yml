@@ -21,6 +21,9 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
+      - name: Run Tests
+        run: mvn test
+
       - name: Build and Publish
         run: mvn deploy -DskipTests
         env:

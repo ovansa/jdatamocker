@@ -8,71 +8,38 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Pattern;
 
 /**
- * Fluent API for generating mock data with thread-safe implementation.
- *
- * <p>Example usage:
- * <pre>{@code
- * JDataMocker mocker = new JDataMocker.Builder()
- *     .withLocale(Locale.US)
- *     .withCustomProvider("custom", new CustomDataProvider())
- *     .build();
- *
- * String email = mocker.email().business();
- * LocalDate date = mocker.date().past(5); // Date within last 5 years
- * }</pre>
+ * Fluent API for generating thread-safe mock data.
  *
  * @author Muhammed Ibrahim
  * @version 2.1
  * @since 1.0
  */
 public class JDataMocker implements DataMocker {
-
     private final ThreadLocalRandom random;
     private final Map<String, DataProvider> providers;
-    private final Locale locale;
 
     private static final Pattern COMPANY_NAME_CLEANER = Pattern.compile("[^a-zA-Z0-9]");
 
     /**
-     * Builder pattern for configuring JDataMocker instances.
-     * Allows customization of locale and providers before building the JDataMocker.
-     *
-     * <p>Example usage:
-     * <pre>{@code
-     * JDataMocker mocker = new JDataMocker.Builder()
-     *     .withLocale(Locale.FRENCH)
-     *     .build();
-     * }</pre>
+     * Builder for configuring JDataMocker instances with custom providers.
      */
     public static class Builder {
-        private Locale locale = Locale.ENGLISH;
         private final Map<String, DataProvider> customProviders = new HashMap<>();
 
         /**
          * Constructs a new Builder with default configuration:
-         * - Locale: English
          * - No custom providers
          */
         public Builder() {
         }
 
         /**
-         * Sets the locale for data generation.
-         *
-         * @param locale the locale to use
-         * @return this builder instance
-         */
-        public Builder withLocale(Locale locale) {
-            this.locale = Objects.requireNonNull(locale, "Locale must not be null");
-            return this;
-        }
-
-        /**
          * Adds a custom data provider.
          *
-         * @param name     the provider name
-         * @param provider the provider instance
-         * @return this builder instance
+         * @param name     provider name
+         * @param provider provider instance
+         * @return this Builder
+         * @throws NullPointerException if name or provider is null
          */
         public Builder withCustomProvider(String name, DataProvider provider) {
             this.customProviders.put(
@@ -94,14 +61,12 @@ public class JDataMocker implements DataMocker {
 
     private JDataMocker(Builder builder) {
         this.random = ThreadLocalRandom.current();
-        this.locale = builder.locale;
         this.providers = registerProviders(builder.customProviders);
     }
 
     private Map<String, DataProvider> registerProviders(Map<String, DataProvider> customProviders) {
         Map<String, DataProvider> providers = new HashMap<>(customProviders);
 
-        // Register default providers if not overridden
         providers.putIfAbsent("name", new NameProvider(random));
         providers.putIfAbsent("address", new AddressProvider(random));
         providers.putIfAbsent("phoneNumber", new PhoneNumberProvider(random));
@@ -140,10 +105,10 @@ public class JDataMocker implements DataMocker {
     }
 
     /**
-     * Gets a specific provider by name.
+     * Retrieves a provider by name.
      *
-     * @param providerName the name of the provider
-     * @return the requested DataProvider
+     * @param providerName name of the provider
+     * @return the DataProvider instance
      * @throws ProviderNotFoundException if provider not found
      */
     public DataProvider getProvider(String providerName) {
@@ -152,7 +117,7 @@ public class JDataMocker implements DataMocker {
     }
 
     /**
-     * Name generator fluent API.
+     * Fluent API for generating names.
      */
     public static final class NameGenerator {
         private final JDataMocker mocker;
@@ -162,37 +127,54 @@ public class JDataMocker implements DataMocker {
         }
 
         /**
-         * Generates a Nigerian name.
+         * Generates a random Nigerian name.
          *
-         * @return Random Nigerian name
+         * @return e.g., "Emeka Okafor"
          */
         public String nigerian() {
             return ((NameProvider) mocker.getProvider("name")).nigerianName();
         }
 
         /**
-         * Generates an Arabic name.
+         * Generates a random Arabic name.
          *
-         * @return Random Arabic name
+         * @return e.g., "Fatima Al-Maktoum"
          */
         public String arabic() {
             return ((NameProvider) mocker.getProvider("name")).arabicName();
         }
 
         /**
-         * Generates a Western name.
+         * Generates a random Western name.
          *
-         * @return Random Western name
+         * @return e.g., "Michael Smith"
          */
         public String western() {
-            return ((NameProvider) mocker.getProvider("name"))
-                    .getName(NameProvider.Region.WESTERN);
+            return ((NameProvider) mocker.getProvider("name")).westernName();
         }
 
         /**
-         * Generates a full name in default format.
+         * Generates a random Asian name.
          *
-         * @return Random full name
+         * @return e.g., "Wei Wang"
+         */
+        public String asian() {
+            return ((NameProvider) mocker.getProvider("name")).getName(NameProvider.Region.ASIAN);
+        }
+
+        /**
+         * Generates a random European name.
+         *
+         * @return e.g., "Jean Martin"
+         */
+        public String european() {
+            return ((NameProvider) mocker.getProvider("name")).getName(NameProvider.Region.EUROPEAN);
+        }
+
+        /**
+         * Generates a random full name (Western by default).
+         *
+         * @return e.g., "John Smith"
          */
         public String fullName() {
             return ((NameProvider) mocker.getProvider("name")).getName();
@@ -200,7 +182,7 @@ public class JDataMocker implements DataMocker {
     }
 
     /**
-     * Date generator fluent API.
+     * Fluent API for generating dates.
      */
     public static final class DateGenerator {
         private final JDataMocker mocker;
@@ -212,46 +194,46 @@ public class JDataMocker implements DataMocker {
         /**
          * Generates a random date.
          *
-         * @return Randomly generated date
+         * @return random LocalDate
          */
         public LocalDate random() {
             return ((DateProvider) mocker.getProvider("date")).randomDate();
         }
 
         /**
-         * Generates a date in the past.
+         * Generates a date up to maxYears in the past.
          *
-         * @param maxYears Maximum years in the past
-         * @return Random date up to maxYears ago
+         * @param maxYears maximum years back
+         * @return random past LocalDate
+         * @throws IllegalArgumentException if maxYears is negative
          */
         public LocalDate past(int maxYears) {
             validateYears(maxYears);
-            return ((DateProvider) mocker.getProvider("date"))
-                    .randomPastDate(maxYears);
+            return ((DateProvider) mocker.getProvider("date")).randomPastDate(maxYears);
         }
 
         /**
-         * Generates a date in the future.
+         * Generates a date up to maxYears in the future.
          *
-         * @param maxYears Maximum years in the future
-         * @return Random date up to maxYears ahead
+         * @param maxYears maximum years ahead
+         * @return random future LocalDate
+         * @throws IllegalArgumentException if maxYears is negative
          */
         public LocalDate future(int maxYears) {
             validateYears(maxYears);
-            return ((DateProvider) mocker.getProvider("date"))
-                    .randomFutureDate(maxYears);
+            return ((DateProvider) mocker.getProvider("date")).randomFutureDate(maxYears);
         }
 
         /**
-         * Generates a birth date for someone of specified age.
+         * Generates a birth date for a given age.
          *
-         * @param age Desired age in years
-         * @return Birth date that would make someone the specified age
+         * @param age age in years
+         * @return birth LocalDate
+         * @throws IllegalArgumentException if age is negative
          */
         public LocalDate birthday(int age) {
             validateYears(age);
-            return ((DateProvider) mocker.getProvider("date"))
-                    .randomBirthDate(age);
+            return ((DateProvider) mocker.getProvider("date")).randomBirthDate(age);
         }
 
         private void validateYears(int years) {
@@ -262,7 +244,7 @@ public class JDataMocker implements DataMocker {
     }
 
     /**
-     * Email generator fluent API.
+     * Fluent API for generating emails.
      */
     public static final class EmailGenerator {
         private final JDataMocker mocker;
@@ -274,30 +256,27 @@ public class JDataMocker implements DataMocker {
         /**
          * Generates a personal email address.
          *
-         * @return Random personal email
+         * @return e.g., "john.smith@example.com"
          */
         public String personal() {
-            return mocker.name().fullName()
-                    .replace(" ", ".")
-                    .toLowerCase(mocker.locale) + "@example.com";
+            return mocker.name().fullName().replace(" ", ".").toLowerCase() + "@example.com";
         }
 
         /**
          * Generates a business email address.
          *
-         * @return Random business email
+         * @return e.g., "contact@acme.com"
          */
         public String business() {
             String company = COMPANY_NAME_CLEANER.matcher(
-                    ((CompanyProvider) mocker.getProvider("company"))
-                            .randomCompany(Continent.AMERICA)
-            ).replaceAll("").toLowerCase(mocker.locale);
+                    ((CompanyProvider) mocker.getProvider("company")).randomCompany(Continent.AMERICA)
+            ).replaceAll("").toLowerCase();
             return "contact@" + company + ".com";
         }
     }
 
     /**
-     * Number generator fluent API.
+     * Fluent API for generating numbers.
      */
     public static final class NumberGenerator {
         private final JDataMocker mocker;
@@ -307,66 +286,61 @@ public class JDataMocker implements DataMocker {
         }
 
         /**
-         * Generates a random integer between min and max (inclusive).
+         * Generates a random integer in range [min, max].
          *
-         * @param min Minimum value (inclusive)
-         * @param max Maximum value (inclusive)
-         * @return Random integer in specified range
+         * @param min minimum value (inclusive)
+         * @param max maximum value (inclusive)
+         * @return random integer
          */
         public int integer(int min, int max) {
-            return ((NumberProvider) mocker.getProvider("number"))
-                    .randomNumber(min, max);
+            return ((NumberProvider) mocker.getProvider("number")).randomNumber(min, max);
         }
 
         /**
-         * Generates a random even number between min and max (inclusive).
+         * Generates a random even integer in range [min, max].
          *
-         * @param min Minimum value (inclusive)
-         * @param max Maximum value (inclusive)
-         * @return Random even integer in specified range
+         * @param min minimum value (inclusive)
+         * @param max maximum value (inclusive)
+         * @return random even integer
          */
         public int even(int min, int max) {
-            return ((NumberProvider) mocker.getProvider("number"))
-                    .randomEvenNumber(min, max);
+            return ((NumberProvider) mocker.getProvider("number")).randomEvenNumber(min, max);
         }
 
         /**
-         * Generates a random odd number between min and max (inclusive).
+         * Generates a random odd integer in range [min, max].
          *
-         * @param min Minimum value (inclusive)
-         * @param max Maximum value (inclusive)
-         * @return Random odd integer in specified range
+         * @param min minimum value (inclusive)
+         * @param max maximum value (inclusive)
+         * @return random odd integer
          */
         public int odd(int min, int max) {
-            return ((NumberProvider) mocker.getProvider("number"))
-                    .randomOddNumber(min, max);
+            return ((NumberProvider) mocker.getProvider("number")).randomOddNumber(min, max);
         }
 
         /**
-         * Generates a random decimal between min and max (inclusive).
+         * Generates a random decimal in range [min, max].
          *
-         * @param min Minimum value (inclusive)
-         * @param max Maximum value (inclusive)
-         * @return Random decimal in specified range
+         * @param min minimum value (inclusive)
+         * @param max maximum value (inclusive)
+         * @return random decimal
          */
         public double decimal(double min, double max) {
-            return ((NumberProvider) mocker.getProvider("number"))
-                    .randomDecimal(min, max);
+            return ((NumberProvider) mocker.getProvider("number")).randomDecimal(min, max);
         }
 
         /**
-         * Generates a random percentage between 0.0 and 100.0.
+         * Generates a random percentage (0.0 to 100.0).
          *
-         * @return Random percentage value
+         * @return random percentage
          */
         public double percentage() {
-            return ((NumberProvider) mocker.getProvider("number"))
-                    .randomPercentage(2);
+            return ((NumberProvider) mocker.getProvider("number")).randomPercentage(2);
         }
     }
 
     /**
-     * Username generator fluent API.
+     * Fluent API for generating usernames.
      */
     public static final class UsernameGenerator {
         private final JDataMocker mocker;
@@ -378,33 +352,30 @@ public class JDataMocker implements DataMocker {
         /**
          * Generates a random username.
          *
-         * @return Random username
+         * @return random username
          */
         public String random() {
-            return ((UsernameProvider) mocker.getProvider("username"))
-                    .randomUsername();
+            return ((UsernameProvider) mocker.getProvider("username")).randomUsername();
         }
 
         /**
-         * Generates a username based on name patterns.
+         * Generates a name-based username.
          *
-         * @return Name-based username
+         * @return username derived from a name
          */
         public String nameBased() {
-            return ((UsernameProvider) mocker.getProvider("username"))
-                    .randomNameUsername();
+            return ((UsernameProvider) mocker.getProvider("username")).randomNameUsername();
         }
 
         /**
-         * Generates a custom username with specified parameters.
+         * Generates a custom username with specified length and special characters.
          *
-         * @param length       Desired username length
-         * @param specialChars Whether to include special characters
-         * @return Custom generated username
+         * @param length       desired length
+         * @param specialChars include special characters if true
+         * @return custom username
          */
         public String custom(int length, boolean specialChars) {
-            return ((UsernameProvider) mocker.getProvider("username"))
-                    .randomCustomUsername(length, specialChars, true);
+            return ((UsernameProvider) mocker.getProvider("username")).randomCustomUsername(length, specialChars, true);
         }
     }
 }

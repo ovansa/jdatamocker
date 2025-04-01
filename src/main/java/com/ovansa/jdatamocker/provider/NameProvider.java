@@ -1,5 +1,6 @@
 package com.ovansa.jdatamocker.provider;
 
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -138,9 +139,9 @@ public class NameProvider extends BaseProvider implements DataProvider {
     private static final String[] MIDDLE_NAMES = {"Ade", "Mohammed", "James", "Lee", "Xiao", "Jean", "Marie", "Anne", "Lynn", "Grace", "David", "Michael", "John", "William", "Robert", "Fatima", "Aisha", "Chinedu", "Oluwatobi", "Emeka", "Yong", "Min", "Wei", "Jian", "Hao", "Giovanni", "Marco", "Pierre", "Hans", "Ivan", "Olga", "Sophie", "Mei", "Hana", "Priya"};
 
     /**
-     * Constructs a new {@code NameProvider} with the specified random number generator.
+     * Creates a NameProvider with the given random generator.
      *
-     * @param random the {@link ThreadLocalRandom} instance to use for random number generation
+     * @param random ThreadLocalRandom instance for randomization
      * @throws NullPointerException if random is null
      */
     public NameProvider(ThreadLocalRandom random) {
@@ -148,65 +149,46 @@ public class NameProvider extends BaseProvider implements DataProvider {
     }
 
     /**
-     * Generates a random name with default settings (Nigerian region, unspecified gender,
-     * and first-last format).
+     * Generates a random Western name in "First Last" format.
      *
-     * @return a randomly generated name in the format "FirstName LastName"
-     * <p>Example: {@code "Chinedu Okoro"}
+     * @return a random name, e.g., "John Smith"
      */
     public String getName() {
-        return getName(Region.NIGERIAN, Gender.UNSPECIFIED, Format.FIRST_LAST);
+        return getName(Region.WESTERN);
     }
 
     /**
-     * Generates a random name with the specified region and default format/gender.
+     * Generates a random name for the specified region in "First Last" format.
      *
-     * @param region the cultural region for the name generation
-     * @return a randomly generated name in the format "FirstName LastName"
+     * @param region cultural region for the name
+     * @return a random name, e.g., "Ahmed Al-Saud" (Arabic)
      * @throws NullPointerException if region is null
-     *                              <p>Examples:
-     *                              <pre>{@code
-     *                                                                                                                                                                               getName(Region.ARABIC) → "Ahmed Al-Saud"
-     *                                                                                                                                                                               getName(Region.WESTERN) → "Emily Johnson"
-     *                                                                                                                                                                               }</pre>
      */
     public String getName(Region region) {
-        return getName(region, Gender.UNSPECIFIED, Format.FIRST_LAST);
+        return getName(region, Gender.UNSPECIFIED);
     }
 
     /**
-     * Generates a random name with the specified region and gender, using default format.
+     * Generates a random name with specified region and gender in "First Last" format.
      *
-     * @param region the cultural region for the name generation
-     * @param gender the gender specification for the name
-     * @return a randomly generated name in the format "FirstName LastName"
+     * @param region cultural region for the name
+     * @param gender gender for the name
+     * @return a random name, e.g., "Amina Ibrahim" (Nigerian, Female)
      * @throws NullPointerException if region or gender is null
-     *                              <p>Examples:
-     *                              <pre>{@code
-     *                                                                                                                                                                               getName(Region.NIGERIAN, Gender.FEMALE) → "Amina Ibrahim"
-     *                                                                                                                                                                               getName(Region.ASIAN, Gender.MALE) → "Wei Wang"
-     *                                                                                                                                                                               }</pre>
      */
     public String getName(Region region, Gender gender) {
         return getName(region, gender, Format.FIRST_LAST);
     }
 
     /**
-     * Generates a random name with full customization options including region,
-     * gender, and format specifications.
+     * Generates a random name with specified region, gender, and format.
      *
-     * @param region the cultural region for the name generation
-     * @param gender the gender specification for the name
-     * @param format the desired format of the generated name
-     * @return a randomly generated name according to the specified parameters
+     * @param region cultural region for the name
+     * @param gender gender for the name
+     * @param format desired name format
+     * @return a random name, e.g., "Chief Emeka Okafor" (Nigerian, Male, Title-First-Last)
      * @throws NullPointerException     if any parameter is null
-     * @throws IllegalArgumentException if the combination of parameters is unsupported
-     *                                  <p>Examples:
-     *                                  <pre>{@code
-     *                                                                                                                                                                                                       getName(Region.WESTERN, Gender.FEMALE, Format.TITLE_FIRST_LAST) → "Ms. Emily Johnson"
-     *                                                                                                                                                                                                       getName(Region.ARABIC, Gender.MALE, Format.LAST_FIRST) → "Al-Saud, Ahmed"
-     *                                                                                                                                                                                                       getName(Region.NIGERIAN, Gender.UNSPECIFIED, Format.FIRST_MIDDLE_LAST) → "Chinedu Ade Okoro"
-     *                                                                                                                                                                                                       }</pre>
+     * @throws IllegalArgumentException if parameters are unsupported
      */
     public String getName(Region region, Gender gender, Format format) {
         Objects.requireNonNull(region, "Region must not be null");
@@ -226,45 +208,38 @@ public class NameProvider extends BaseProvider implements DataProvider {
     }
 
     /**
-     * Generates a random Nigerian name with default format and unspecified gender.
-     * This is a convenience method equivalent to getName(Region.NIGERIAN).
+     * Generates a random Nigerian name in "First Last" format.
      *
-     * @return a randomly generated Nigerian name
-     * <p>Example: {@code "Emeka Okafor"}
+     * @return a random Nigerian name, e.g., "Emeka Okafor"
      */
     public String nigerianName() {
         return getName(Region.NIGERIAN);
     }
 
     /**
-     * Generates a random Arabic name with default format and unspecified gender.
-     * This is a convenience method equivalent to getName(Region.ARABIC).
+     * Generates a random Arabic name in "First Last" format.
      *
-     * @return a randomly generated Arabic name
-     * <p>Example: {@code "Fatima Al-Maktoum"}
+     * @return a random Arabic name, e.g., "Fatima Al-Maktoum"
      */
     public String arabicName() {
         return getName(Region.ARABIC);
     }
 
     /**
-     * Generates a random Western name with default format and unspecified gender.
-     * This is a convenience method equivalent to getName(Region.WESTERN).
+     * Generates a random Western name in "First Last" format.
      *
-     * @return a randomly generated Western name
-     * <p>Example: {@code "Michael Smith"}
+     * @return a random Western name, e.g., "Michael Smith"
      */
     public String westernName() {
         return getName(Region.WESTERN);
     }
 
     /**
-     * Selects a random first name based on the specified region and gender.
+     * Returns a random first name based on region and gender.
      *
-     * @param region the cultural region for the name
-     * @param gender the gender specification
-     * @return a randomly selected first name
-     * @throws IllegalArgumentException if the region is not supported
+     * @param region cultural region
+     * @param gender gender specification
+     * @return a random first name
      */
     private String getRandomFirstName(Region region, Gender gender) {
         return switch (region) {
@@ -277,11 +252,10 @@ public class NameProvider extends BaseProvider implements DataProvider {
     }
 
     /**
-     * Selects a random last name based on the specified region.
+     * Returns a random last name based on region.
      *
-     * @param region the cultural region for the name
-     * @return a randomly selected last name
-     * @throws IllegalArgumentException if the region is not supported
+     * @param region cultural region
+     * @return a random last name
      */
     private String getRandomLastName(Region region) {
         return switch (region) {
@@ -294,11 +268,10 @@ public class NameProvider extends BaseProvider implements DataProvider {
     }
 
     /**
-     * Selects a random title based on the specified region.
+     * Returns a random title based on region.
      *
-     * @param region the cultural region for the title
-     * @return a randomly selected title
-     * @throws IllegalArgumentException if the region is not supported
+     * @param region cultural region
+     * @return a random title
      */
     private String getRandomTitle(Region region) {
         return switch (region) {
@@ -311,16 +284,24 @@ public class NameProvider extends BaseProvider implements DataProvider {
     }
 
     /**
-     * Selects a random element from the provided array of strings.
+     * Returns a random element from the given array.
      *
-     * @param array the array of strings to select from
-     * @return a randomly selected string from the array
-     * @throws IllegalArgumentException if the array is null or empty
+     * @param array array of strings
+     * @return a random string
+     * @throws IllegalArgumentException if array is null or empty
      */
     private String getRandom(String[] array) {
         if (array == null || array.length == 0) {
             throw new IllegalArgumentException("Array must not be null or empty");
         }
         return array[random.nextInt(array.length)];
+    }
+
+    boolean isValidNigerianName(String name) {  // Package-private for test access
+        String[] parts = name.split(" ");
+        if (parts.length != 2) return false;
+        return (Arrays.asList(NIGERIAN_MALE_FIRST_NAMES).contains(parts[0]) ||
+                Arrays.asList(NIGERIAN_FEMALE_FIRST_NAMES).contains(parts[0])) &&
+                Arrays.asList(NIGERIAN_LAST_NAMES).contains(parts[1]);
     }
 }

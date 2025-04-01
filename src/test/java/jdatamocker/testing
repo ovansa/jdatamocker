@@ -1,0 +1,311 @@
+package jdatamocker;
+
+package com.ovansa.jdatamocker;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ValueSource;
+import java.time.LocalDate;
+import java.time.Period;
+import java.util.Locale;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.regex.Pattern;
+import java.util.stream.IntStream;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class MockerTest {
+    private JDataMocker mocker;
+    private static final int TEST_ITERATIONS = 100;
+
+    @BeforeEach
+    void setUp() {
+        mocker = new JDataMocker.Builder().build();
+    }
+
+    @Test
+    void builder_withDefaultConfiguration_createsValidInstance() {
+        assertNotNull(mocker);
+        assertNotNull(mocker.name());
+        assertNotNull(mocker.date());
+        assertNotNull(mocker.email());
+        assertNotNull(mocker.number());
+        assertNotNull(mocker.username());
+    }
+
+    @Test
+    void builder_withCustomLocale_affectsGeneratedData() {
+        JDataMocker frenchMocker = new JDataMocker.Builder()
+                .withLocale(Locale.FRENCH)
+                .build();
+
+        // Test that locale affects name generation
+        String englishName = mocker.name().fullName();
+        String frenchName = frenchMocker.name().fullName();
+        assertNotEquals(englishName, frenchName);
+    }
+
+    // Enhanced Name Generator Tests
+    @Test
+    void name_fullName_generatesConsistentStructure() {
+        IntStream.range(0, TEST_ITERATIONS).forEach(i -> {
+            String name = mocker.name().fullName();
+            assertNotNull(name);
+            assertFalse(name.trim().isEmpty());
+            String[] parts = name.split(" ");
+            assertTrue(parts.length >= 2, "Name should have at least two parts");
+            for (String part : parts) {
+                assertTrue(part.matches("[A-Z][a-z]+"),
+                        "Each name part should start with capital letter: " + name);
+            }
+        });
+    }
+
+    @ParameterizedTest
+    @EnumSource(NameProvider.Region.class)
+    void name_withDifferentRegions_generatesRegionSpecificNames(NameProvider.Region region) {
+        Set<String> names = new HashSet<>();
+
+        IntStream.range(0, TEST_ITERATIONS).forEach(i -> {
+            String name = "";
+            switch (region) {
+                case WESTERN: name = mocker.name().western(); break;
+                case NIGERIAN: name = mocker.name().nigerian(); break;
+                case ARABIC: name = mocker.name().arabic(); break;
+            }
+
+            assertNotNull(name);
+            assertFalse(name.trim().isEmpty());
+            names.add(name);
+
+            // Verify name structure
+            String[] parts = name.split(" ");
+            assertTrue(parts.length >= 2,
+                    "Name from region " + region + " should have at least two parts: " + name);
+        });
+
+        // Verify we got some variety
+        assertTrue(names.size() > TEST_ITERATIONS / 2,
+                "Should generate diverse names for region " + region);
+    }
+
+    // Enhanced Date Generator Tests
+    @Test
+    void date_random_generatesValidDates() {
+        LocalDate now = LocalDate.now();
+
+        IntStream.range(0, TEST_ITERATIONS).forEach(i -> {
+            LocalDate date = mocker.date().random();
+            assertNotNull(date);
+            assertTrue(date.isAfter(LocalDate.of(1900, 1, 1)),
+                    "Date should be after 1900: " + date);
+            assertTrue(date.isBefore(LocalDate.of(2100, 1, 1)),
+                    "Date should be before 2100: " + date);
+        });
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {1, 5, 10, 20})
+    void date_past_generatesDatesWithinRange(int years) {
+        LocalDate now = LocalDate.now();
+
+        IntStream.range(0, TEST_ITERATIONS).forEach(i -> {
+            LocalDate pastDate = mocker.date().past(years);
+            assertTrue(pastDate.isBefore(now),
+                    "Date should be in the past: " + pastDate);
+            assertTrue(pastDate.isAfter(now.minusYears(years + 1L)),
+                    "Date should be within " + years + " years: " + pastDate);
+        });
+    }
+
+    @Test
+    void date_birthday_generatesValidBirthDates() {
+        int[] ages = {18, 25, 40, 65};
+
+        for (int age : ages) {
+            IntStream.range(0, TEST_ITERATIONS).forEach(i -> {
+                LocalDate birthDate = mocker.date().birthday(age);
+                int calculatedAge = Period.between(birthDate, LocalDate.now()).getYears();
+                assertTrue(calculatedAge >= age - 1 && calculatedAge <= age + 1,
+                        "Birthdate should correspond to age " + age +
+                                ", but was " + calculatedAge + " for date " + birthDate);
+            });
+        }
+    }
+
+    // Enhanced Email Generator Tests
+    @Test
+    void email_personal_generatesValidEmails() {
+        Pattern emailPattern = Pattern.compile("^[\\w.-]+@[\\w.-]+\\.\\w+$");
+
+        IntStream.range(0, TEST_ITERATIONS).forEach(i -> {
+            String email = mocker.email().personal();
+            assertNotNull(email);
+            assertTrue(emailPattern.matcher(email).matches(),
+                    "Invalid email format: " + email);
+            assertTrue(email.endsWith("@example.com"),
+                    "Personal email should end with @example.com: " + email);
+        });
+    }
+
+    @Test
+    void email_business_generatesValidBusinessEmails() {
+        Pattern emailPattern = Pattern.compile("^contact@[a-z0-9]+\\.com$");
+
+        IntStream.range(0, TEST_ITERATIONS).forEach(i -> {
+            String email = mocker.email().business();
+            assertNotNull(email);
+            assertTrue(emailPattern.matcher(email).matches(),
+                    "Invalid business email format: " + email);
+            assertTrue(email.startsWith("contact@"),
+                    "Business email should start with contact@: " + email);
+            assertTrue(email.endsWith(".com"),
+                    "Business email should end with .com: " + email);
+        });
+    }
+
+    // Enhanced Number Generator Tests
+    @Test
+    void number_integer_generatesNumbersWithinRange() {
+        int min = 10;
+        int max = 20;
+
+        IntStream.range(0, TEST_ITERATIONS).forEach(i -> {
+            int value = mocker.number().integer(min, max);
+            assertTrue(value >= min && value <= max,
+                    "Value should be between " + min + " and " + max + ": " + value);
+        });
+    }
+
+    @Test
+    void number_even_generatesEvenNumbersWithinRange() {
+        int min = 10;
+        int max = 20;
+
+        IntStream.range(0, TEST_ITERATIONS).forEach(i -> {
+            int value = mocker.number().even(min, max);
+            assertTrue(value >= min && value <= max,
+                    "Value should be between " + min + " and " + max + ": " + value);
+            assertEquals(0, value % 2,
+                    "Value should be even: " + value);
+        });
+    }
+
+    @Test
+    void number_decimal_generatesNumbersWithinRange() {
+        double min = 10.5;
+        double max = 20.5;
+
+        IntStream.range(0, TEST_ITERATIONS).forEach(i -> {
+            double value = mocker.number().decimal(min, max);
+            assertTrue(value >= min && value <= max,
+                    "Value should be between " + min + " and " + max + ": " + value);
+        });
+    }
+
+    @Test
+    void number_percentage_generatesValidPercentages() {
+        IntStream.range(0, TEST_ITERATIONS).forEach(i -> {
+            double percentage = mocker.number().percentage();
+            assertTrue(percentage >= 0.0 && percentage <= 100.0,
+                    "Percentage should be between 0 and 100: " + percentage);
+        });
+    }
+
+    // Enhanced Username Generator Tests
+    @Test
+    void username_random_generatesValidUsernames() {
+        Pattern usernamePattern = Pattern.compile("^[a-zA-Z0-9._-]{3,}$");
+
+        IntStream.range(0, TEST_ITERATIONS).forEach(i -> {
+            String username = mocker.username().random();
+            assertNotNull(username);
+            assertTrue(usernamePattern.matcher(username).matches(),
+                    "Invalid username format: " + username);
+            assertTrue(username.length() >= 3,
+                    "Username should be at least 3 characters: " + username);
+        });
+    }
+
+    @Test
+    void username_custom_generatesUsernamesWithSpecifiedParams() {
+        IntStream.range(0, TEST_ITERATIONS).forEach(i -> {
+            int length = 8 + i % 5; // Vary length between 8-12
+            boolean specialChars = i % 2 == 0;
+
+            String username = mocker.username().custom(length, specialChars);
+            assertNotNull(username);
+            assertEquals(length, username.length(),
+                    "Username should have length " + length + ": " + username);
+
+            if (!specialChars) {
+                assertTrue(username.matches("^[a-zA-Z0-9]+$"),
+                        "Username should only contain alphanumeric chars: " + username);
+            }
+        });
+    }
+
+    // Provider Tests
+    @Test
+    void getProvider_withKnownProviders_returnsCorrectInstances() {
+        assertTrue(mocker.getProvider("name") instanceof NameProvider);
+        assertTrue(mocker.getProvider("address") instanceof AddressProvider);
+        assertTrue(mocker.getProvider("phoneNumber") instanceof PhoneNumberProvider);
+        assertTrue(mocker.getProvider("company") instanceof CompanyProvider);
+        assertTrue(mocker.getProvider("date") instanceof DateProvider);
+        assertTrue(mocker.getProvider("number") instanceof NumberProvider);
+        assertTrue(mocker.getProvider("string") instanceof StringProvider);
+        assertTrue(mocker.getProvider("username") instanceof UsernameProvider);
+    }
+
+    @Test
+    void builder_withCustomProvider_registersAndRetrievesProvider() {
+        String providerName = "testProvider";
+        DataProvider customProvider = new TestDataProvider();
+
+        JDataMocker customMocker = new JDataMocker.Builder()
+                .withCustomProvider(providerName, customProvider)
+                .build();
+
+        assertEquals(customProvider, customMocker.getProvider(providerName));
+    }
+
+    // Edge Case Tests
+    @Test
+    void number_integer_withSameRange_generatesDifferentValues() {
+        int min = 1;
+        int max = 1000;
+        Set<Integer> generatedValues = new HashSet<>();
+
+        IntStream.range(0, TEST_ITERATIONS).forEach(i -> {
+            int value = mocker.number().integer(min, max);
+            generatedValues.add(value);
+        });
+
+        assertTrue(generatedValues.size() > TEST_ITERATIONS / 2,
+                "Should generate diverse values, got only " + generatedValues.size() + " unique values");
+    }
+
+    @Test
+    void name_fullName_generatesDifferentNames() {
+        Set<String> generatedNames = new HashSet<>();
+
+        IntStream.range(0, TEST_ITERATIONS).forEach(i -> {
+            generatedNames.add(mocker.name().fullName());
+        });
+
+        assertTrue(generatedNames.size() > TEST_ITERATIONS / 2,
+                "Should generate diverse names, got only " + generatedNames.size() + " unique names");
+    }
+
+    // Helper class for custom provider test
+    private static class TestDataProvider implements DataProvider {
+        @Override
+        public String get() {
+            return "testValue";
+        }
+    }
+}
