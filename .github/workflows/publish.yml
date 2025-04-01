@@ -3,15 +3,15 @@ name: Publish to GitHub Packages
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*'  # Trigger this job only on version tags
+  workflow_dispatch:  # Allow manual triggering
 
 jobs:
   publish:
     runs-on: ubuntu-latest
-    needs: test  # Ensure tests pass before publishing
     permissions:
       contents: read
-      packages: write
+      packages: write  # Required for publishing
 
     steps:
       - uses: actions/checkout@v4
@@ -22,29 +22,7 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Extract version from POM
-        id: get_version
-        run: echo "VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
-
-      - name: Get latest version from GitHub Packages
-        id: get_latest_version
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          LATEST_VERSION=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
-          "https://api.github.com/orgs/ovansa/packages/maven/jdatamocker/versions" | \
-          jq -r '.[0].name')
-
-          echo "LATEST_VERSION=$LATEST_VERSION" >> $GITHUB_ENV
-          echo "Latest version on GitHub: $LATEST_VERSION"
-
-      - name: Check if deployment is needed
-        if: env.VERSION == env.LATEST_VERSION
-        run: |
-          echo "Version ${VERSION} already exists on GitHub Packages. Skipping deployment."
-          exit 0
-
       - name: Build and Publish
         run: mvn deploy -DskipTests
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Auto-generated secret
