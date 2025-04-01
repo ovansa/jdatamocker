@@ -1,7 +1,7 @@
 package com.ovansa.jdatamocker.provider;
 
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.Objects;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Provides mock name data generation with extensive support for multiple cultures,
@@ -166,9 +166,9 @@ public class NameProvider extends BaseProvider implements DataProvider {
      * @throws NullPointerException if region is null
      *                              <p>Examples:
      *                              <pre>{@code
-     *                                                           getName(Region.ARABIC) → "Ahmed Al-Saud"
-     *                                                           getName(Region.WESTERN) → "Emily Johnson"
-     *                                                           }</pre>
+     *                                                                                                                                                                               getName(Region.ARABIC) → "Ahmed Al-Saud"
+     *                                                                                                                                                                               getName(Region.WESTERN) → "Emily Johnson"
+     *                                                                                                                                                                               }</pre>
      */
     public String getName(Region region) {
         return getName(region, Gender.UNSPECIFIED, Format.FIRST_LAST);
@@ -183,9 +183,9 @@ public class NameProvider extends BaseProvider implements DataProvider {
      * @throws NullPointerException if region or gender is null
      *                              <p>Examples:
      *                              <pre>{@code
-     *                                                           getName(Region.NIGERIAN, Gender.FEMALE) → "Amina Ibrahim"
-     *                                                           getName(Region.ASIAN, Gender.MALE) → "Wei Wang"
-     *                                                           }</pre>
+     *                                                                                                                                                                               getName(Region.NIGERIAN, Gender.FEMALE) → "Amina Ibrahim"
+     *                                                                                                                                                                               getName(Region.ASIAN, Gender.MALE) → "Wei Wang"
+     *                                                                                                                                                                               }</pre>
      */
     public String getName(Region region, Gender gender) {
         return getName(region, gender, Format.FIRST_LAST);
@@ -203,10 +203,10 @@ public class NameProvider extends BaseProvider implements DataProvider {
      * @throws IllegalArgumentException if the combination of parameters is unsupported
      *                                  <p>Examples:
      *                                  <pre>{@code
-     *                                                                   getName(Region.WESTERN, Gender.FEMALE, Format.TITLE_FIRST_LAST) → "Ms. Emily Johnson"
-     *                                                                   getName(Region.ARABIC, Gender.MALE, Format.LAST_FIRST) → "Al-Saud, Ahmed"
-     *                                                                   getName(Region.NIGERIAN, Gender.UNSPECIFIED, Format.FIRST_MIDDLE_LAST) → "Chinedu Ade Okoro"
-     *                                                                   }</pre>
+     *                                                                                                                                                                                                       getName(Region.WESTERN, Gender.FEMALE, Format.TITLE_FIRST_LAST) → "Ms. Emily Johnson"
+     *                                                                                                                                                                                                       getName(Region.ARABIC, Gender.MALE, Format.LAST_FIRST) → "Al-Saud, Ahmed"
+     *                                                                                                                                                                                                       getName(Region.NIGERIAN, Gender.UNSPECIFIED, Format.FIRST_MIDDLE_LAST) → "Chinedu Ade Okoro"
+     *                                                                                                                                                                                                       }</pre>
      */
     public String getName(Region region, Gender gender, Format format) {
         Objects.requireNonNull(region, "Region must not be null");
