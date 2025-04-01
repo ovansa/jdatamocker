@@ -1,21 +1,15 @@
-name: Publish to GitHub Packages
+name: Run Tests
 
 on:
   push:
     branches:
       - main
       - develop
-    tags:
-      - 'v*'
   pull_request:
 
 jobs:
-  publish:
+  test:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write  # Required for publishing
-
     steps:
       - uses: actions/checkout@v4
 
@@ -27,8 +21,3 @@ jobs:
 
       - name: Run Tests
         run: mvn test
-
-      - name: Build and Publish
-        run: mvn deploy -DskipTests
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Auto-generated secret
