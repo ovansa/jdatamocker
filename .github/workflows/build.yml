@@ -2,8 +2,12 @@ name: Publish to GitHub Packages
 
 on:
   push:
+    branches:
+      - main
+      - develop
     tags:
       - 'v*'
+  pull_request:
 
 jobs:
   publish:
