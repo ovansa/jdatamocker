@@ -6,12 +6,13 @@
 
     <groupId>com.ovansa</groupId>
     <artifactId>jdatamocker</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
     <packaging>jar</packaging>
 
     <name>JDataMocker</name>
     <description>A comprehensive Java data mocking library for generating realistic test data including names, numbers,
-        dates, and usernames</description>
+        dates, and usernames
+    </description>
     <url>https://github.com/ovansa/jdatamocker</url>
 
     <developers>
