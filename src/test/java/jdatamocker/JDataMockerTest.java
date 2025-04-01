@@ -13,7 +13,7 @@ public class JDataMockerTest {
 
     @BeforeEach
     void setUp() {
-        mocker = new JDataMocker.Builder().build();
+        mocker = new JDataMocker();
     }
 
     @Test

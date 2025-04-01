@@ -3,7 +3,10 @@ package com.ovansa.jdatamocker;
 import com.ovansa.jdatamocker.provider.*;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Pattern;
 
@@ -21,60 +24,24 @@ public class JDataMocker implements DataMocker {
     private static final Pattern COMPANY_NAME_CLEANER = Pattern.compile("[^a-zA-Z0-9]");
 
     /**
-     * Builder for configuring JDataMocker instances with custom providers.
+     * Constructs a new JDataMocker instance with default providers.
      */
-    public static class Builder {
-        private final Map<String, DataProvider> customProviders = new HashMap<>();
-
-        /**
-         * Constructs a new Builder with default configuration:
-         * - No custom providers
-         */
-        public Builder() {
-        }
-
-        /**
-         * Adds a custom data provider.
-         *
-         * @param name     provider name
-         * @param provider provider instance
-         * @return this Builder
-         * @throws NullPointerException if name or provider is null
-         */
-        public Builder withCustomProvider(String name, DataProvider provider) {
-            this.customProviders.put(
-                    Objects.requireNonNull(name, "Provider name must not be null"),
-                    Objects.requireNonNull(provider, "Provider must not be null")
-            );
-            return this;
-        }
-
-        /**
-         * Builds the {@code JDataMocker} instance.
-         *
-         * @return new JDataMocker instance
-         */
-        public JDataMocker build() {
-            return new JDataMocker(this);
-        }
-    }
-
-    private JDataMocker(Builder builder) {
+    public JDataMocker() {
         this.random = ThreadLocalRandom.current();
-        this.providers = registerProviders(builder.customProviders);
+        this.providers = registerProviders();
     }
 
-    private Map<String, DataProvider> registerProviders(Map<String, DataProvider> customProviders) {
-        Map<String, DataProvider> providers = new HashMap<>(customProviders);
+    private Map<String, DataProvider> registerProviders() {
+        Map<String, DataProvider> providers = new HashMap<>();
 
-        providers.putIfAbsent("name", new NameProvider(random));
-        providers.putIfAbsent("address", new AddressProvider(random));
-        providers.putIfAbsent("phoneNumber", new PhoneNumberProvider(random));
-        providers.putIfAbsent("company", new CompanyProvider(random));
-        providers.putIfAbsent("date", new DateProvider(random));
-        providers.putIfAbsent("number", new NumberProvider(random));
-        providers.putIfAbsent("string", new StringProvider(random));
-        providers.putIfAbsent("username", new UsernameProvider(random));
+        providers.put("name", new NameProvider(random));
+        providers.put("address", new AddressProvider(random));
+        providers.put("phoneNumber", new PhoneNumberProvider(random));
+        providers.put("company", new CompanyProvider(random));
+        providers.put("date", new DateProvider(random));
+        providers.put("number", new NumberProvider(random));
+        providers.put("string", new StringProvider(random));
+        providers.put("username", new UsernameProvider(random));
 
         return Collections.unmodifiableMap(providers);
     }
