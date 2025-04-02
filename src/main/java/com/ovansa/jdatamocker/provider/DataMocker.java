@@ -41,4 +41,32 @@ public interface DataMocker {
      * @return Username generator fluent API
      */
     JDataMocker.UsernameGenerator username();
+
+    /**
+     * Gets the address generator instance.
+     *
+     * @return Address generator fluent API
+     */
+    JDataMocker.AddressGenerator address();
+
+    /**
+     * Gets the phone number generator instance.
+     *
+     * @return Phone number generator fluent API
+     */
+    JDataMocker.PhoneNumberGenerator phoneNumber();
+
+    /**
+     * Gets the company generator instance.
+     *
+     * @return Company generator fluent API
+     */
+    JDataMocker.CompanyGenerator company();
+
+    /**
+     * Gets the string generator instance.
+     *
+     * @return String generator fluent API
+     */
+    JDataMocker.StringGenerator string();
 }
