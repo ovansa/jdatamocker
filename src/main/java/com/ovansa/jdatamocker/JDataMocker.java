@@ -71,6 +71,26 @@ public class JDataMocker implements DataMocker {
         return new UsernameGenerator(this);
     }
 
+    @Override
+    public AddressGenerator address() {
+        return new AddressGenerator(this);
+    }
+
+    @Override
+    public PhoneNumberGenerator phoneNumber() {
+        return new PhoneNumberGenerator(this);
+    }
+
+    @Override
+    public CompanyGenerator company() {
+        return new CompanyGenerator(this);
+    }
+
+    @Override
+    public StringGenerator string() {
+        return new StringGenerator(this);
+    }
+
     /**
      * Retrieves a provider by name.
      *
@@ -343,6 +363,97 @@ public class JDataMocker implements DataMocker {
          */
         public String custom(int length, boolean specialChars) {
             return ((UsernameProvider) mocker.getProvider("username")).randomCustomUsername(length, specialChars, true);
+        }
+    }
+
+    /**
+     * Fluent API for generating addresses.
+     */
+    public static final class AddressGenerator {
+        private final JDataMocker mocker;
+
+        private AddressGenerator(JDataMocker mocker) {
+            this.mocker = mocker;
+        }
+
+        /**
+         * Generates a random full address.
+         *
+         * @return e.g., "123 Main St"
+         */
+        public String fullAddress() {
+            return ((AddressProvider) mocker.getProvider("address")).fullAddress();
+        }
+    }
+
+    /**
+     * Fluent API for generating phone numbers.
+     */
+    public static final class PhoneNumberGenerator {
+        private final JDataMocker mocker;
+
+        private PhoneNumberGenerator(JDataMocker mocker) {
+            this.mocker = mocker;
+        }
+
+        /**
+         * Generates a random phone number.
+         *
+         * @return e.g., "0123456789"
+         */
+        public String phoneNumber() {
+            return ((PhoneNumberProvider) mocker.getProvider("phoneNumber")).phoneNumber();
+        }
+    }
+
+    /**
+     * Fluent API for generating company names.
+     */
+    public static final class CompanyGenerator {
+        private final JDataMocker mocker;
+
+        private CompanyGenerator(JDataMocker mocker) {
+            this.mocker = mocker;
+        }
+
+        /**
+         * Generates a random company name for a specified continent.
+         *
+         * @param continent the continent to select a company from
+         * @return e.g., "Apple" (for Continent.AMERICA)
+         */
+        public String randomCompany(Continent continent) {
+            return ((CompanyProvider) mocker.getProvider("company")).randomCompany(continent);
+        }
+
+        /**
+         * Generates a random company name (defaults to global).
+         *
+         * @return e.g., "Coca-Cola"
+         */
+        public String randomCompany() {
+            return ((CompanyProvider) mocker.getProvider("company")).randomCompany(Continent.GLOBAL);
+        }
+    }
+
+    /**
+     * Fluent API for generating random strings.
+     */
+    public static final class StringGenerator {
+        private final JDataMocker mocker;
+
+        private StringGenerator(JDataMocker mocker) {
+            this.mocker = mocker;
+        }
+
+        /**
+         * Generates a random string of the specified length.
+         *
+         * @param length the desired length of the string
+         * @return e.g., "Xy7Kp9" (for length 6)
+         */
+        public String randomString(int length) {
+            return ((StringProvider) mocker.getProvider("string")).randomString(length);
         }
     }
 }
