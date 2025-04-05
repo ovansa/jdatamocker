@@ -1,40 +1,53 @@
 package com.ovansa.jdatamocker.provider;
 
-import java.util.EnumMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Provides mock company names for testing purposes.
- * This class generates random company names based on a specified continent,
- * allowing for region-specific company data generation. If the specified continent
- * is not found, it defaults to a list of global companies.
+ * Provides mock company names for testing purposes with enhanced features.
+ * Generates random company names based on continents, countries, industries,
+ * or custom generation with suffixes. Supports region-specific and global company data.
  *
  * @author Muhammed Ibrahim
- * @version 1.0
- * @since 1.0
+ * @version 1.0.8
+ * @since 1.0.0
  */
 public class CompanyProvider extends BaseProvider implements DataProvider {
 
-    /**
-     * A mapping of continents to arrays of company names.
-     * Each continent is associated with a list of well-known companies from that region.
-     * The {@link Continent#GLOBAL} key provides a fallback list of globally recognized companies.
-     */
-    private static final Map<Continent, String[]> COMPANIES = new EnumMap<>(Continent.class);
-
+    // Continent-based company names
+    private static final Map<Continent, String[]> CONTINENT_COMPANIES = new EnumMap<>(Continent.class);
     static {
-        COMPANIES.put(Continent.AFRICA, new String[]{"Safaricom", "Dangote Group", "MTN Group", "Shoprite", "Ecobank"});
-        COMPANIES.put(Continent.AMERICA, new String[]{"Apple", "Microsoft", "Google", "Amazon", "Tesla"});
-        COMPANIES.put(Continent.EUROPE, new String[]{"Siemens", "Volkswagen", "Nestle", "Shell", "Unilever"});
-        COMPANIES.put(Continent.ASIA, new String[]{"Samsung", "Toyota", "Alibaba", "Huawei", "Sony"});
-        COMPANIES.put(Continent.AUSTRALIA, new String[]{"BHP", "Woolworths", "Telstra", "Qantas", "Commonwealth Bank"});
-        COMPANIES.put(Continent.GLOBAL, new String[]{"Coca-Cola", "McDonald's", "Nike", "Disney", "IBM"});
+        CONTINENT_COMPANIES.put(Continent.AFRICA, new String[]{"Safaricom", "Dangote Group", "MTN Group", "Shoprite", "Ecobank"});
+        CONTINENT_COMPANIES.put(Continent.AMERICA, new String[]{"Apple", "Microsoft", "Google", "Amazon", "Tesla"});
+        CONTINENT_COMPANIES.put(Continent.EUROPE, new String[]{"Siemens", "Volkswagen", "Nestle", "Shell", "Unilever"});
+        CONTINENT_COMPANIES.put(Continent.ASIA, new String[]{"Samsung", "Toyota", "Alibaba", "Huawei", "Sony"});
+        CONTINENT_COMPANIES.put(Continent.AUSTRALIA, new String[]{"BHP", "Woolworths", "Telstra", "Qantas", "Commonwealth Bank"});
+        CONTINENT_COMPANIES.put(Continent.GLOBAL, new String[]{"Coca-Cola", "McDonald's", "Nike", "Disney", "IBM"});
     }
+
+    // Country-specific company names (subset for demonstration)
+    private static final Map<String, String[]> COUNTRY_COMPANIES = new HashMap<>();
+    static {
+        COUNTRY_COMPANIES.put("US", new String[]{"Apple", "Google", "Amazon", "Tesla", "Walmart"});
+        COUNTRY_COMPANIES.put("UK", new String[]{"BP", "HSBC", "Tesco", "Rolls-Royce", "Barclays"});
+        COUNTRY_COMPANIES.put("NG", new String[]{"Dangote Group", "MTN Nigeria", "Zenith Bank", "Glo", "First Bank"});
+        COUNTRY_COMPANIES.put("JP", new String[]{"Toyota", "Sony", "Honda", "Nintendo", "Panasonic"});
+    }
+
+    // Industry-specific prefixes and suffixes
+    private static final Map<Industry, String[]> INDUSTRY_PREFIXES = new EnumMap<>(Industry.class);
+    static {
+        INDUSTRY_PREFIXES.put(Industry.TECH, new String[]{"Tech", "Nex", "Cyber", "Inno", "Data"});
+        INDUSTRY_PREFIXES.put(Industry.RETAIL, new String[]{"Shop", "Market", "Store", "Retail", "Trade"});
+        INDUSTRY_PREFIXES.put(Industry.MANUFACTURING, new String[]{"Indust", "Manu", "Forge", "Build", "Works"});
+        INDUSTRY_PREFIXES.put(Industry.FINANCE, new String[]{"Bank", "Fin", "Invest", "Capital", "Trust"});
+    }
+
+    private static final String[] SUFFIXES = {"Inc.", "Ltd", "LLC", "GmbH", "Co.", "Corp", "Group", "Solutions"};
+    private static final String[] GENERIC_TERMS = {"ify", "tron", "ex", "ly", "on", "is", "um", "er"};
 
     /**
      * Constructs a new {@code CompanyProvider} with the specified random number generator.
-     * The random number generator is used to select random company names from the predefined lists.
      *
      * @param random the {@link ThreadLocalRandom} instance to use for random number generation
      */
@@ -42,26 +55,128 @@ public class CompanyProvider extends BaseProvider implements DataProvider {
         super(random);
     }
 
+    // ========================
+    // Continent-Based Generation
+    // ========================
+
     /**
      * Generates a random company name based on the specified continent.
-     * If the continent is not found in the predefined mapping, it defaults to a list of global companies.
      *
      * @param continent the {@link Continent} to select a company from
-     * @return a randomly selected company name from the specified continent, or a global company if the continent is not found
+     * @return e.g., "Safaricom" (Africa)
      */
     public String randomCompany(Continent continent) {
-        String[] companies = COMPANIES.getOrDefault(continent, COMPANIES.get(Continent.GLOBAL));
+        String[] companies = CONTINENT_COMPANIES.getOrDefault(continent, CONTINENT_COMPANIES.get(Continent.GLOBAL));
         return getRandom(companies);
     }
 
+    // ========================
+    // Country-Based Generation
+    // ========================
+
     /**
-     * Selects a random element from the provided array of strings.
-     * This method is used internally to pick a random company name from the list associated with a continent.
+     * Generates a random company name based on the specified country code.
      *
-     * @param array the array of strings to select from
-     * @return a randomly selected string from the array
+     * @param countryCode the country code (e.g., "US", "UK", "NG")
+     * @return e.g., "Google" (US)
      */
+    public String randomCompanyByCountry(String countryCode) {
+        String[] companies = COUNTRY_COMPANIES.getOrDefault(countryCode.toUpperCase(),
+                CONTINENT_COMPANIES.get(Continent.GLOBAL));
+        return getRandom(companies);
+    }
+
+    // ========================
+    // Industry-Based Generation
+    // ========================
+
+    /**
+     * Generates a random company name based on the specified industry with an optional suffix.
+     *
+     * @param industry the {@link Industry} to base the name on
+     * @param withSuffix whether to append a suffix (e.g., "Inc.", "Ltd")
+     * @return e.g., "Techtron Inc." (Tech, with suffix)
+     */
+    public String randomCompanyByIndustry(Industry industry, boolean withSuffix) {
+        String prefix = getRandom(INDUSTRY_PREFIXES.getOrDefault(industry, INDUSTRY_PREFIXES.get(Industry.TECH)));
+        String suffix = withSuffix ? " " + getRandom(SUFFIXES) : "";
+        return prefix + getRandom(GENERIC_TERMS) + suffix;
+    }
+
+    // ========================
+    // Fully Random Generation
+    // ========================
+
+    /**
+     * Generates a completely random company name with an optional suffix.
+     *
+     * @param withSuffix whether to append a suffix
+     * @return e.g., "Nexlify Ltd"
+     */
+    public String randomGeneratedCompany(boolean withSuffix) {
+        String prefix = randomString(4, "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+        String suffix = withSuffix ? " " + getRandom(SUFFIXES) : "";
+        return prefix + getRandom(GENERIC_TERMS) + suffix;
+    }
+
+    // ========================
+    // Custom Generation
+    // ========================
+
+    /**
+     * Generates a company name from a custom list of names.
+     *
+     * @param customCompanies the custom list of company names
+     * @return a random name from the provided list
+     * @throws IllegalArgumentException if the list is null or empty
+     */
+    public String randomFromCustomList(List<String> customCompanies) {
+        if (customCompanies == null || customCompanies.isEmpty()) {
+            throw new IllegalArgumentException("Custom company list must not be null or empty");
+        }
+        return customCompanies.get(random.nextInt(customCompanies.size()));
+    }
+
+    // ========================
+    // Validation
+    // ========================
+
+    /**
+     * Checks if a string resembles a plausible company name.
+     *
+     * @param name the name to validate
+     * @return true if it matches a basic company name pattern
+     */
+    public boolean isValidCompanyName(String name) {
+        if (name == null || name.trim().isEmpty()) return false;
+        return name.matches("^[A-Za-z0-9][A-Za-z0-9\\s]*(Inc\\.|Ltd|LLC|GmbH|Co\\.|Corp|Group|Solutions)?$");
+    }
+
+    // ========================
+    // Helper Methods
+    // ========================
+
     private String getRandom(String[] array) {
         return array[random.nextInt(array.length)];
+    }
+
+    private String randomString(int length, String charset) {
+        StringBuilder sb = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            sb.append(charset.charAt(random.nextInt(charset.length())));
+        }
+        return sb.toString();
+    }
+
+    // ========================
+    // Enums for Continent and Industry
+    // ========================
+
+    public enum Continent {
+        AFRICA, AMERICA, EUROPE, ASIA, AUSTRALIA, GLOBAL
+    }
+
+    public enum Industry {
+        TECH, RETAIL, MANUFACTURING, FINANCE
     }
 }

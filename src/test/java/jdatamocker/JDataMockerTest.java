@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -142,18 +143,23 @@ public class JDataMockerTest {
     void emailGenerator_personal_generatesValidEmail() {
         String email = mocker.email().personal();
         assertNotNull(email, "Generated personal email should not be null");
-        assertTrue(email.matches("[a-z.]+@example\\.com"),
-                "Personal email should match expected format: " + email);
-        assertTrue(email.contains("."), "Personal email should include a dot separator: " + email);
+        assertTrue(email.matches("[a-z]+\\.[a-z]+@[a-z]+\\.[a-z]{2,4}"),
+                "Personal email should match expected format (e.g., john.smith@domain.com): " + email);
+        assertTrue(email.contains("."), "Personal email should include a dot separator in username: " + email);
+        assertTrue(List.of("gmail.com", "yahoo.com", "outlook.com", "hotmail.com", "example.com").contains(email.substring(email.indexOf("@") + 1)),
+                "Personal email should use a valid domain: " + email);
     }
 
     @Test
     void emailGenerator_business_generatesValidEmail() {
         String email = mocker.email().business();
         assertNotNull(email, "Generated business email should not be null");
-        assertTrue(email.matches("contact@[a-z0-9]+\\.com"),
-                "Business email should match expected format: " + email);
-        assertTrue(email.startsWith("contact@"), "Business email should start with 'contact@': " + email);
+        assertTrue(email.matches("(contact|info|sales|support|admin)@[a-z0-9]+\\.[a-z.]{2,6}"),
+                "Business email should match expected format (e.g., sales@acme.com): " + email);
+        assertTrue(List.of("contact", "info", "sales", "support", "admin").contains(email.substring(0, email.indexOf("@"))),
+                "Business email should start with a valid prefix: " + email);
+        assertTrue(List.of("com", "org", "net", "co.uk", "ng", "ca", "de", "fr", "jp").contains(email.substring(email.lastIndexOf(".") + 1)),
+                "Business email should use a valid TLD: " + email);
     }
 
     @Test

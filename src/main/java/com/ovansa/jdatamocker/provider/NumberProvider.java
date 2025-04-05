@@ -18,8 +18,8 @@ import java.util.Objects;
  * All methods are thread-safe when used with {@link ThreadLocalRandom}.
  *
  * @author Muhammed Ibrahim
- * @version 2.0
- * @since 1.0
+ * @version 1.0.8
+ * @since 1.0.0
  */
 public class NumberProvider extends BaseProvider implements DataProvider {
 

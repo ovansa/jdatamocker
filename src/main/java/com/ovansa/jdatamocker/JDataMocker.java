@@ -3,10 +3,7 @@ package com.ovansa.jdatamocker;
 import com.ovansa.jdatamocker.provider.*;
 
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Pattern;
 
@@ -42,6 +39,7 @@ public class JDataMocker implements DataMocker {
         providers.put("number", new NumberProvider(random));
         providers.put("string", new StringProvider(random));
         providers.put("username", new UsernameProvider(random));
+        providers.put("email", new EmailProvider (random));
 
         return Collections.unmodifiableMap(providers);
     }
@@ -240,26 +238,13 @@ public class JDataMocker implements DataMocker {
             this.mocker = mocker;
         }
 
-        /**
-         * Generates a personal email address.
-         *
-         * @return e.g., "john.smith@example.com"
-         */
-        public String personal() {
-            return mocker.name().fullName().replace(" ", ".").toLowerCase() + "@example.com";
-        }
-
-        /**
-         * Generates a business email address.
-         *
-         * @return e.g., "contact@acme.com"
-         */
-        public String business() {
-            String company = COMPANY_NAME_CLEANER.matcher(
-                    ((CompanyProvider) mocker.getProvider("company")).randomCompany(Continent.AMERICA)
-            ).replaceAll("").toLowerCase();
-            return "contact@" + company + ".com";
-        }
+        public String personal() { return ((EmailProvider) mocker.getProvider("email")).personal(); }
+        public String personalWithDomain(String domain) { return ((EmailProvider) mocker.getProvider("email")).personalWithDomain(domain); }
+        public String personalRandomFormat() { return ((EmailProvider) mocker.getProvider("email")).personalRandomFormat(); }
+        public String business() { return ((EmailProvider) mocker.getProvider("email")).business(); }
+        public String businessByCountry(String countryCode) { return ((EmailProvider) mocker.getProvider("email")).businessByCountry(countryCode); }
+        public String businessWithCustom(String companyName, String tld) { return ((EmailProvider) mocker.getProvider("email")).businessWithCustom(companyName, tld); }
+        public boolean isValidEmail(String email) { return ((EmailProvider) mocker.getProvider("email")).isValidEmail(email); }
     }
 
     /**
@@ -376,14 +361,15 @@ public class JDataMocker implements DataMocker {
             this.mocker = mocker;
         }
 
-        /**
-         * Generates a random full address.
-         *
-         * @return e.g., "123 Main St"
-         */
-        public String fullAddress() {
-            return ((AddressProvider) mocker.getProvider("address")).fullAddress();
-        }
+        public String fullAddress() { return ((AddressProvider) mocker.getProvider("address")).fullAddress(); }
+        public String fullAddress(String countryCode) { return ((AddressProvider) mocker.getProvider("address")).fullAddress(countryCode); }
+        public String streetAddress(String countryCode) { return ((AddressProvider) mocker.getProvider("address")).streetAddress(countryCode); }
+        public String city(String countryCode) { return ((AddressProvider) mocker.getProvider("address")).city(countryCode); }
+        public String state(String countryCode) { return ((AddressProvider) mocker.getProvider("address")).state(countryCode); }
+        public String postalCode(String countryCode) { return ((AddressProvider) mocker.getProvider("address")).postalCode(countryCode); }
+        public String fullAddressWithApartment(String countryCode) { return ((AddressProvider) mocker.getProvider("address")).fullAddressWithApartment(countryCode); }
+        public String randomCountryAddress() { return ((AddressProvider) mocker.getProvider("address")).randomCountryAddress(); }
+        public boolean isValidAddress(String address, String countryCode) { return ((AddressProvider) mocker.getProvider("address")).isValidAddress(address, countryCode); }
     }
 
     /**
@@ -396,14 +382,24 @@ public class JDataMocker implements DataMocker {
             this.mocker = mocker;
         }
 
-        /**
-         * Generates a random phone number.
-         *
-         * @return e.g., "0123456789"
-         */
-        public String phoneNumber() {
-            return ((PhoneNumberProvider) mocker.getProvider("phoneNumber")).phoneNumber();
-        }
+        public String phoneNumber() { return ((PhoneNumberProvider) mocker.getProvider("phoneNumber")).phoneNumber(); }
+        public String phoneNumber(String countryCode) { return ((PhoneNumberProvider) mocker.getProvider("phoneNumber")).phoneNumber(countryCode); }
+        public String international() { return ((PhoneNumberProvider) mocker.getProvider("phoneNumber")).international(); }
+        public String international(String countryCode) { return ((PhoneNumberProvider) mocker.getProvider("phoneNumber")).international(countryCode); }
+        public String formatted() { return ((PhoneNumberProvider) mocker.getProvider("phoneNumber")).formatted(); }
+        public String formatted(String countryCode) { return ((PhoneNumberProvider) mocker.getProvider("phoneNumber")).formatted(countryCode); }
+        public String customFormatted(String countryCode, String pattern) { return ((PhoneNumberProvider) mocker.getProvider("phoneNumber")).customFormatted(countryCode, pattern); }
+        public String mobile() { return ((PhoneNumberProvider) mocker.getProvider("phoneNumber")).mobile(); }
+        public String mobile(String countryCode) { return ((PhoneNumberProvider) mocker.getProvider("phoneNumber")).mobile(countryCode); }
+        public String landline() { return ((PhoneNumberProvider) mocker.getProvider("phoneNumber")).landline(); }
+        public String landline(String countryCode) { return ((PhoneNumberProvider) mocker.getProvider("phoneNumber")).landline(countryCode); }
+        public String tollFree(String countryCode) { return ((PhoneNumberProvider) mocker.getProvider("phoneNumber")).tollFree(countryCode); }
+        public String premiumRate(String countryCode) { return ((PhoneNumberProvider) mocker.getProvider("phoneNumber")).premiumRate(countryCode); }
+        public String withExtension(String countryCode, int extensionLength) { return ((PhoneNumberProvider) mocker.getProvider("phoneNumber")).withExtension(countryCode, extensionLength); }
+        public String randomCountry() { return ((PhoneNumberProvider) mocker.getProvider("phoneNumber")).randomCountry(); }
+        public boolean isValidPhoneNumber(String input) { return ((PhoneNumberProvider) mocker.getProvider("phoneNumber")).isValidPhoneNumber(input); }
+        public boolean isValidForCountry(String phoneNumber, String countryCode) { return ((PhoneNumberProvider) mocker.getProvider("phoneNumber")).isValidForCountry(phoneNumber, countryCode); }
+        public List<String> getSupportedCountries() { return ((PhoneNumberProvider) mocker.getProvider("phoneNumber")).getSupportedCountries(); }
     }
 
     /**
@@ -416,23 +412,23 @@ public class JDataMocker implements DataMocker {
             this.mocker = mocker;
         }
 
-        /**
-         * Generates a random company name for a specified continent.
-         *
-         * @param continent the continent to select a company from
-         * @return e.g., "Apple" (for Continent.AMERICA)
-         */
-        public String randomCompany(Continent continent) {
+        public String randomCompany(CompanyProvider.Continent continent) {
             return ((CompanyProvider) mocker.getProvider("company")).randomCompany(continent);
         }
-
-        /**
-         * Generates a random company name (defaults to global).
-         *
-         * @return e.g., "Coca-Cola"
-         */
-        public String randomCompany() {
-            return ((CompanyProvider) mocker.getProvider("company")).randomCompany(Continent.GLOBAL);
+        public String randomCompanyByCountry(String countryCode) {
+            return ((CompanyProvider) mocker.getProvider("company")).randomCompanyByCountry(countryCode);
+        }
+        public String randomCompanyByIndustry(CompanyProvider.Industry industry, boolean withSuffix) {
+            return ((CompanyProvider) mocker.getProvider("company")).randomCompanyByIndustry(industry, withSuffix);
+        }
+        public String randomGeneratedCompany(boolean withSuffix) {
+            return ((CompanyProvider) mocker.getProvider("company")).randomGeneratedCompany(withSuffix);
+        }
+        public String randomFromCustomList(List<String> customCompanies) {
+            return ((CompanyProvider) mocker.getProvider("company")).randomFromCustomList(customCompanies);
+        }
+        public boolean isValidCompanyName(String name) {
+            return ((CompanyProvider) mocker.getProvider("company")).isValidCompanyName(name);
         }
     }
 
@@ -446,14 +442,27 @@ public class JDataMocker implements DataMocker {
             this.mocker = mocker;
         }
 
-        /**
-         * Generates a random string of the specified length.
-         *
-         * @param length the desired length of the string
-         * @return e.g., "Xy7Kp9" (for length 6)
-         */
-        public String randomString(int length) {
-            return ((StringProvider) mocker.getProvider("string")).randomString(length);
-        }
+        public String alphabetic(int length) { return ((StringProvider) mocker.getProvider("string")).alphabetic(length); }
+        public String numeric(int length) { return ((StringProvider) mocker.getProvider("string")).numeric(length); }
+        public String alphanumeric(int length) { return ((StringProvider) mocker.getProvider("string")).alphanumeric(length); }
+        public String withSpecialChars(int length) { return ((StringProvider) mocker.getProvider("string")).withSpecialChars(length); }
+        public String hex(int length) { return ((StringProvider) mocker.getProvider("string")).hex(length); }
+        public String custom(int length, String charset) { return ((StringProvider) mocker.getProvider("string")).custom(length, charset); }
+        public String fromPattern(String pattern) { return ((StringProvider) mocker.getProvider("string")).fromPattern(pattern); }
+        public String firstName() { return ((StringProvider) mocker.getProvider("string")).firstName(); }
+        public String lastName() { return ((StringProvider) mocker.getProvider("string")).lastName(); }
+        public String fullName() { return ((StringProvider) mocker.getProvider("string")).fullName(); }
+        public String email() { return ((StringProvider) mocker.getProvider("string")).email(); }
+        public String lorem(int words) { return ((StringProvider) mocker.getProvider("string")).lorem(words); }
+        public String sentence(int words) { return ((StringProvider) mocker.getProvider("string")).sentence(words); }
+        public String paragraph(int sentences) { return ((StringProvider) mocker.getProvider("string")).paragraph(sentences); }
+        public String uuid() { return ((StringProvider) mocker.getProvider("string")).uuid(); }
+        public String guid() { return ((StringProvider) mocker.getProvider("string")).guid(); }
+        public String uuidLike() { return ((StringProvider) mocker.getProvider("string")).uuidLike(); }
+        public String password(int length) { return ((StringProvider) mocker.getProvider("string")).password(length); }
+        public String strongPassword() { return ((StringProvider) mocker.getProvider("string")).strongPassword(); }
+        public String filePath() { return ((StringProvider) mocker.getProvider("string")).filePath(); }
+        public String url() { return ((StringProvider) mocker.getProvider("string")).url(); }
+        public boolean isEmail(String input) { return ((StringProvider) mocker.getProvider("string")).isEmail(input); }
     }
 }
